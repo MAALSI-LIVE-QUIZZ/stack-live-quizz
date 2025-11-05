@@ -1,0 +1,115 @@
+services:
+  api-results:
+    extends:
+      file: ../api-results/compose.yml
+      service: api
+    container_name: live-quizz-api-results
+    restart: unless-stopped
+    networks:
+      - live-quizz-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://127.0.0.1:80/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Surcharge du service 'db' avec configurations additionnelles
+  db:
+    extends:
+      file: ../api-results/compose.yml
+      service: db
+    container_name: live-quizz-db
+    restart: unless-stopped
+    networks:
+      - live-quizz-network
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Surcharge du service 'adminer' avec configurations additionnelles
+  adminer:
+    extends:
+      file: ../api-results/compose.yml
+      service: adminer
+    container_name: live-quizz-adminer
+    restart: unless-stopped
+    ports:
+      - "${ADMINER_PORT:-8081}:8080"
+    networks:
+      - live-quizz-network
+
+  # API Quiz - json-server pour gérer les quiz et les joueurs
+  api-quizz:
+    image: clue/json-server
+    container_name: live-quizz-api-quizz
+    restart: unless-stopped
+    ports:
+      - "${API_QUIZ_PORT:-3000}:80"
+    volumes:
+      - ../api-quizz/db.json:/data/db.json
+    networks:
+      - live-quizz-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:80",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend React - Application pour jouer au quiz
+  react-live-quizz:
+    build:
+      context: ../react-live-quizz
+      dockerfile: Dockerfile
+      args:
+        VITE_QUIZ_API_URL: ${VITE_QUIZ_API_URL:-http://localhost:3000}
+        VITE_RESULTS_API_URL: ${VITE_RESULTS_API_URL:-http://localhost:3030}
+    container_name: react-live-quizz
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    depends_on:
+      api-quizz:
+        condition: service_healthy
+      api-results:
+        condition: service_healthy
+    networks:
+      - live-quizz-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:80",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  db_data:
+    driver: local
+
+networks:
+  live-quizz-network:
+    driver: bridge

@@ -101,7 +101,7 @@ services:
     container_name: live-quizz-frontend
     restart: unless-stopped
     ports:
-      - "${REACT_APP_PORT:-8080}:80"
+      - "${REACT_APP_PORT:-8000}:80"
     depends_on:
       api-quizz:
         condition: service_healthy

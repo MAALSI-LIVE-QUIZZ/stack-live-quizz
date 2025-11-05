@@ -74,9 +74,23 @@ Cette stack déploie 5 services Docker interconnectés :
 
 3. **Lancer la stack complète**
 
+   Deux options sont disponibles :
+
+   **Option 1 : Compose standalone (recommandé pour la production)**
+
    ```bash
    docker compose up -d
    ```
+
+   **Option 2 : Compose embedded (réutilise api-results/compose.yml)**
+
+   ```bash
+   docker compose -f compose.embedded.yml up -d
+   ```
+
+   > 💡 L'option embedded réutilise les définitions des services `db`, `api` et `adminer` depuis le fichier `compose.yml` du projet api-results via `extends`, évitant ainsi la duplication de code.
+   >
+   > **Note** : Le frontend sera accessible sur le port **8000** (au lieu de 8080) pour éviter les conflits de ports avec Adminer.
 
 4. **Vérifier que tous les services sont lancés**
 
@@ -93,7 +107,7 @@ Cette stack déploie 5 services Docker interconnectés :
 
 Une fois la stack lancée, les services sont accessibles via :
 
-- **Frontend** : http://localhost:8080
+- **Frontend** : http://localhost:8000
 - **API Quiz** : http://localhost:3000
   - Liste des quiz : http://localhost:3000/quizz
   - Documentation : Voir [api-quizz/README.md](../api-quizz/README.md)
@@ -163,18 +177,74 @@ VITE_RESULTS_API_URL=http://localhost:3030
 docker compose up -d --build react-live-quizz
 ```
 
+## 📋 Compose standalone vs Compose embedded
+
+### compose.yml (Standalone)
+
+Fichier de configuration autonome où tous les services sont définis explicitement. C'est l'approche **recommandée pour la production**.
+
+**Avantages :**
+
+- ✅ Configuration complète et autonome
+- ✅ Pas de dépendances externes
+- ✅ Facile à comprendre et à maintenir
+- ✅ Commande simple : `docker compose up -d`
+
+**Inconvénients :**
+
+- ⚠️ Duplication de code avec `api-results/compose.yml`
+
+### compose.embedded.yml (Embedded)
+
+Approche modulaire qui réutilise les services définis dans `../api-results/compose.yml` via la directive `extends`.
+
+**Comment ça fonctionne :**
+
+- Utilise `extends` pour hériter des services `api`, `db` et `adminer` depuis `api-results/compose.yml`
+- Ajoute les configurations nécessaires (networks, healthchecks, container_name)
+- Définit les services locaux `api-quizz` et `react-live-quizz`
+
+**Avantages :**
+
+- ✅ Pas de duplication de code
+- ✅ Un seul point de vérité pour db/api/adminer
+- ✅ Maintien simplifié des services partagés
+- ✅ **Commande simple** : `docker compose -f compose.embedded.yml up -d`
+
+**Inconvénients :**
+
+- ⚠️ Dépendance au fichier `api-results/compose.yml`
+- ⚠️ Frontend sur le port 8000 (au lieu de 8080)
+- ⚠️ Adminer expose deux ports (8080 et 8081) en raison du comportement de `extends`
+
+**Utilisation :**
+
+```bash
+# Démarrer
+docker compose -f compose.embedded.yml up -d
+
+# Arrêter
+docker compose -f compose.embedded.yml down
+
+# Voir les logs
+docker compose -f compose.embedded.yml logs -f
+
+# Reconstruire un service
+docker compose -f compose.embedded.yml up -d --build react-live-quizz
+```
+
 ## 🔧 Commandes utiles
 
 ### Démarrage et arrêt
 
 ```bash
-# Démarrer tous les services
+# Démarrer tous les services (standalone)
 docker compose up -d
 
-# Démarrer un service spécifique
+# Démarrer un service spécifique (standalone)
 docker compose up -d api-quizz
 
-# Arrêter tous les services
+# Arrêter tous les services (standalone)
 docker compose down
 
 # Arrêter et supprimer les volumes (⚠️ supprime les données de la BDD)
