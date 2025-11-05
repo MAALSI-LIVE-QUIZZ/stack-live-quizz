@@ -27,7 +27,7 @@ Cette stack déploie 5 services Docker interconnectés :
                                      │
                             ┌────────▼────────┐
                             │    Adminer      │
-                            │   Port 8081     │
+                            │   Port 8080     │
                             └─────────────────┘
 ```
 
@@ -39,7 +39,7 @@ Cette stack déploie 5 services Docker interconnectés :
 | **api-quizz**        | API REST pour gérer les quiz et questions | 3000 | json-server             |
 | **api-results**      | API REST pour stocker les résultats       | 3030 | Node.js + Express       |
 | **db**               | Base de données des résultats             | 3306 | MariaDB                 |
-| **adminer**          | Interface d'administration BDD            | 8081 | Adminer                 |
+| **adminer**          | Interface d'administration BDD            | 8080 | Adminer                 |
 
 ## 🚀 Démarrage rapide
 
@@ -114,7 +114,7 @@ Une fois la stack lancée, les services sont accessibles via :
 - **API Results** : http://localhost:3030
   - Health check : http://localhost:3030/health
   - Documentation Swagger : http://localhost:3030/api-docs
-- **Adminer** (BDD) : http://localhost:8081
+- **Adminer** (BDD) : http://localhost:8080
   - Système : `MySQL`
   - Serveur : `db`
   - Utilisateur : `apiresultsuser` (voir `.env`)
@@ -132,8 +132,8 @@ Toutes les variables sont définies dans le fichier `.env` avec des valeurs par 
 ```env
 API_QUIZ_PORT=3000           # Port d'accès à l'API Quiz
 API_RESULTS_PORT=3030        # Port d'accès à l'API Results
-REACT_APP_PORT=8080          # Port d'accès au frontend
-ADMINER_PORT=8081            # Port d'accès à Adminer
+REACT_APP_PORT=8000          # Port d'accès au frontend
+ADMINER_PORT=8080            # Port d'accès à Adminer
 ```
 
 #### Base de données
@@ -215,7 +215,7 @@ Approche modulaire qui réutilise les services définis dans `../api-results/com
 
 - ⚠️ Dépendance au fichier `api-results/compose.yml`
 - ⚠️ Frontend sur le port 8000 (au lieu de 8080)
-- ⚠️ Adminer expose deux ports (8080 et 8081) en raison du comportement de `extends`
+- ⚠️ Adminer expose deux ports (8080 et 8080) en raison du comportement de `extends`
 
 **Utilisation :**
 

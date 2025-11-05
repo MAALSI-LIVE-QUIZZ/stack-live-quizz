@@ -21,7 +21,6 @@ services:
       timeout: 10s
       retries: 3
 
-  # Surcharge du service 'db' avec configurations additionnelles
   db:
     extends:
       file: ../api-results/compose.yml
@@ -36,7 +35,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # Surcharge du service 'adminer' avec configurations additionnelles
   adminer:
     extends:
       file: ../api-results/compose.yml
@@ -44,11 +42,10 @@ services:
     container_name: live-quizz-adminer
     restart: unless-stopped
     ports:
-      - "${ADMINER_PORT:-8081}:8080"
+      - "${ADMINER_PORT:-8080}:8080"
     networks:
       - live-quizz-network
 
-  # API Quiz - json-server pour gérer les quiz et les joueurs
   api-quizz:
     image: clue/json-server
     container_name: live-quizz-api-quizz
@@ -73,7 +70,6 @@ services:
       timeout: 10s
       retries: 3
 
-  # Frontend React - Application pour jouer au quiz
   react-live-quizz:
     build:
       context: ../react-live-quizz
